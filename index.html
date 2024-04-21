@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Insert Data into Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<script>
+function insertDataIntoExcel() {
+    var formData = {
+        email: document.getElementById('email').value,
+        collegename: document.getElementById('collegename').value,
+        collegeaddress: document.getElementById('collegeaddress').value,
+        student1: document.getElementById('student1').value,
+        yearbranch1: document.getElementById('yearbranch1').value,
+        mobile1: document.getElementById('mobile1').value,
+        student2: document.getElementById('student2').value,
+        yearbranch2: document.getElementById('yearbranch2').value,
+        mobile2: document.getElementById('mobile2').value,
+        student3: document.getElementById('student3').value,
+        yearbranch3: document.getElementById('yearbranch3').value,
+        mobile3: document.getElementById('mobile3').value,
+        student4: document.getElementById('student4').value,
+        yearbranch4: document.getElementById('yearbranch4').value,
+        mobile4: document.getElementById('mobile4').value
+    };
+
+    var existingFile = localStorage.getItem('excelFile');
+    if (!existingFile) {
+        existingFile = 'data.xlsx'; // Default filename if no existing file
+    }
+
+    // Open the existing workbook or create a new one
+    var workbook = XLSX.utils.book_new();
+    var worksheet;
+    if (existingFile === 'data.xlsx') {
+        worksheet = XLSX.utils.json_to_sheet([formData]);
+    } else {
+        var fileReader = new FileReader();
+        fileReader.onload = function(e) {
+            var data = new Uint8Array(e.target.result);
+            workbook = XLSX.read(data, { type: 'array' });
+            var sheetName = workbook.SheetNames[0];
+            worksheet = workbook.Sheets[sheetName];
+            XLSX.utils.sheet_add_json(worksheet, [formData], { origin: -1 });
+        };
+        fileReader.readAsArrayBuffer(new File([null], existingFile));
+    }
+
+    // Save the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    var wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+    saveAs(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }), existingFile);
+    localStorage.setItem('excelFile', existingFile);
+
+    // Show success message
+    document.getElementById('successMessage').innerText = 'New entry recorded successfully.';
+}
+
+// Utility function to convert string to array buffer
+function s2ab(s) {
+    var buf = new ArrayBuffer(s.length);
+    var view = new Uint8Array(buf);
+    for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+    return buf;
+}
+</script>
+
+<input type="text" id="email" placeholder="Email">
+<input type="text" id="collegename" placeholder="College Name">
+<input type="text" id="collegeaddress" placeholder="College Address">
+<!-- Repeat for other form fields -->
+<br>
+<button onclick="insertDataIntoExcel()">Insert Data</button>
+<p id="successMessage"></p>
+
+</body>
+</html>
